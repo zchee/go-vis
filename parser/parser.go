@@ -12,6 +12,7 @@ import (
 	"go/token"
 	"io"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -25,31 +26,36 @@ type namedType struct {
 
 type pkgTypes map[string]map[string]namedType
 
-func InspectDir(path string) (pkgTypes, error) {
-	ptypes := make(pkgTypes)
+func InspectDir(paths ...string) ([]pkgTypes, error) {
+	ptypes := make([]pkgTypes, len(paths))
 
 	fset := token.NewFileSet()
-	pkgs, err := parser.ParseDir(fset, path, func(n os.FileInfo) bool { return true }, 0)
-	if err != nil {
-		return nil, err
-	}
-
-	for name, pkg := range pkgs {
-		ptypes[name] = make(map[string]namedType)
-		for _, f := range pkg.Files {
-			ast.Inspect(f, func(n ast.Node) bool {
-				switch n := n.(type) {
-				case *ast.CommentGroup, *ast.Comment: // skip comment
-					return false
-				case *ast.TypeSpec:
-					ptypes[name][n.Name.Name] = namedType{
-						Ident: n.Name,
-						Type:  n.Type,
-					}
-				}
-				return true
-			})
+	for _, path := range paths {
+		ptype := pkgTypes{}
+		path = filepath.Clean(path)
+		pkgs, err := parser.ParseDir(fset, path, func(n os.FileInfo) bool { return true }, 0)
+		if err != nil {
+			return nil, err
 		}
+
+		for name, pkg := range pkgs {
+			ptype[name] = make(map[string]namedType)
+			for _, f := range pkg.Files {
+				ast.Inspect(f, func(n ast.Node) bool {
+					switch n := n.(type) {
+					case *ast.CommentGroup, *ast.Comment: // skip comment
+						return false
+					case *ast.TypeSpec:
+						ptype[name][n.Name.Name] = namedType{
+							Ident: n.Name,
+							Type:  n.Type,
+						}
+					}
+					return true
+				})
+			}
+		}
+		ptypes = append(ptypes, ptype)
 	}
 
 	return ptypes, nil
@@ -116,219 +122,218 @@ func makeStruct(builder strings.Builder, name string, t *ast.StructType) *dotast
 
 // func makePort(name string)
 
-func Render(out io.Writer, ptypes pkgTypes) {
+func Render(out io.Writer, ptypes []pkgTypes) {
+	file := &dotast.File{}
 	graph := &dotast.Graph{
 		ID:       strconv.Quote("go-vis"),
 		Directed: true,
 	}
 
 	var builder strings.Builder
-	for pkg, typs := range ptypes {
-		if strings.HasSuffix(pkg, "_test") {
-			continue
-		}
-
-		subgraph := &dotast.Subgraph{
-			ID:    pkg,
-			Stmts: []dotast.Stmt{makeLabel(pkg)},
-		}
-
-		stmt := []dotast.Stmt{}
-		for _, typ := range typs {
-			builder.Reset()
-
-			switch t := typ.Type.(type) {
-			case *ast.Ident:
-				attrLabel := makeLabel(typ.Ident.Name, t.Name)
-				attr := &dotast.Attr{Key: "shape", Val: "ellipse"}
-				nodeStmt := &dotast.NodeStmt{
-					Node: &dotast.Node{
-						ID: typ.Ident.Name,
-					},
-					Attrs: []*dotast.Attr{attr, attrLabel},
-				}
-				stmt = append(stmt, nodeStmt)
-			case *ast.SelectorExpr:
-				attrLabel := makeLabel(typ.Ident.Name, toString(t))
-				attr := &dotast.Attr{Key: "shape", Val: "ellipse"}
-				nodeStmt := &dotast.NodeStmt{
-					Node: &dotast.Node{
-						ID: typ.Ident.Name,
-					},
-					Attrs: []*dotast.Attr{attr, attrLabel},
-				}
-				stmt = append(stmt, nodeStmt)
-			case *ast.ChanType:
-				attrLabel := makeLabel(typ.Ident.Name, toString(t))
-				attr := &dotast.Attr{Key: "shape", Val: "box"}
-				nodeStmt := &dotast.NodeStmt{
-					Node: &dotast.Node{
-						ID: typ.Ident.Name,
-					},
-					Attrs: []*dotast.Attr{attr, attrLabel},
-				}
-				stmt = append(stmt, nodeStmt)
-			case *ast.FuncType:
-				attrLabel := makeLabel(typ.Ident.Name, toString(t))
-				attr := &dotast.Attr{Key: "shape", Val: "rectangle"}
-				nodeStmt := &dotast.NodeStmt{
-					Node: &dotast.Node{
-						ID: typ.Ident.Name,
-					},
-					Attrs: []*dotast.Attr{attr, attrLabel},
-				}
-				stmt = append(stmt, nodeStmt)
-			case *ast.ArrayType:
-				attrLabel := makeLabel(typ.Ident.Name, toString(t))
-				attr := &dotast.Attr{Key: "shape", Val: "rectangle"}
-				nodeStmt := &dotast.NodeStmt{
-					Node: &dotast.Node{
-						ID: typ.Ident.Name,
-					},
-					Attrs: []*dotast.Attr{attr, attrLabel},
-				}
-				stmt = append(stmt, nodeStmt)
-			case *ast.MapType:
-				attrLabel := makeLabel(typ.Ident.Name, toString(t))
-				attr := &dotast.Attr{Key: "shape", Val: "rectangle"}
-				nodeStmt := &dotast.NodeStmt{
-					Node: &dotast.Node{
-						ID: typ.Ident.Name,
-					},
-					Attrs: []*dotast.Attr{attr, attrLabel},
-				}
-				stmt = append(stmt, nodeStmt)
-			case *ast.InterfaceType:
-				interfaceLabel := makeInterface(builder, typ.Ident.Name, t)
-				attr := &dotast.Attr{Key: "shape", Val: "Mrecord"}
-				nodeStmt := &dotast.NodeStmt{
-					Node: &dotast.Node{
-						ID: typ.Ident.Name,
-					},
-					Attrs: []*dotast.Attr{attr, interfaceLabel},
-				}
-				stmt = append(stmt, nodeStmt)
-			case *ast.StructType:
-				structLabel := makeStruct(builder, typ.Ident.Name, t)
-				attr := &dotast.Attr{Key: "shape", Val: "record"}
-				nodeStmt := &dotast.NodeStmt{
-					Node: &dotast.Node{
-						ID: typ.Ident.Name,
-					},
-					Attrs: []*dotast.Attr{attr, structLabel},
-				}
-				stmt = append(stmt, nodeStmt)
+	for _, ptype := range ptypes {
+		for pkg, typs := range ptype {
+			if strings.HasSuffix(pkg, "_test") {
+				continue
 			}
-		}
 
-		for _, etype := range typs {
-			switch t := etype.Type.(type) {
-			case *ast.FuncType:
-				for i, typ := range dependsOn(t) {
-					if _, ok := typs[typ]; ok {
-						from := &dotast.Node{
-							ID: strconv.Quote(etype.Ident.Name),
-							Port: &dotast.Port{
-								ID: fmt.Sprintf("f%d", i),
-							},
-						}
-						to := &dotast.Edge{
-							Directed: true,
-							Vertex: &dotast.Node{
-								ID: strconv.Quote(typ),
+			subgraph := &dotast.Subgraph{
+				ID:    pkg,
+				Stmts: []dotast.Stmt{makeLabel(pkg)},
+			}
+
+			stmt := []dotast.Stmt{}
+			for _, typ := range typs {
+				builder.Reset()
+
+				switch t := typ.Type.(type) {
+				case *ast.Ident:
+					attrLabel := makeLabel(typ.Ident.Name, t.Name)
+					attr := &dotast.Attr{Key: "shape", Val: "ellipse"}
+					nodeStmt := &dotast.NodeStmt{
+						Node: &dotast.Node{
+							ID: typ.Ident.Name,
+						},
+						Attrs: []*dotast.Attr{attr, attrLabel},
+					}
+					stmt = append(stmt, nodeStmt)
+				case *ast.SelectorExpr:
+					attrLabel := makeLabel(typ.Ident.Name, toString(t))
+					attr := &dotast.Attr{Key: "shape", Val: "ellipse"}
+					nodeStmt := &dotast.NodeStmt{
+						Node: &dotast.Node{
+							ID: typ.Ident.Name,
+						},
+						Attrs: []*dotast.Attr{attr, attrLabel},
+					}
+					stmt = append(stmt, nodeStmt)
+				case *ast.ChanType:
+					attrLabel := makeLabel(typ.Ident.Name, toString(t))
+					attr := &dotast.Attr{Key: "shape", Val: "box"}
+					nodeStmt := &dotast.NodeStmt{
+						Node: &dotast.Node{
+							ID: typ.Ident.Name,
+						},
+						Attrs: []*dotast.Attr{attr, attrLabel},
+					}
+					stmt = append(stmt, nodeStmt)
+				case *ast.FuncType:
+					attrLabel := makeLabel(typ.Ident.Name, toString(t))
+					attr := &dotast.Attr{Key: "shape", Val: "rectangle"}
+					nodeStmt := &dotast.NodeStmt{
+						Node: &dotast.Node{
+							ID: typ.Ident.Name,
+						},
+						Attrs: []*dotast.Attr{attr, attrLabel},
+					}
+					stmt = append(stmt, nodeStmt)
+				case *ast.ArrayType:
+					attrLabel := makeLabel(typ.Ident.Name, toString(t))
+					attr := &dotast.Attr{Key: "shape", Val: "rectangle"}
+					nodeStmt := &dotast.NodeStmt{
+						Node: &dotast.Node{
+							ID: typ.Ident.Name,
+						},
+						Attrs: []*dotast.Attr{attr, attrLabel},
+					}
+					stmt = append(stmt, nodeStmt)
+				case *ast.MapType:
+					attrLabel := makeLabel(typ.Ident.Name, toString(t))
+					attr := &dotast.Attr{Key: "shape", Val: "rectangle"}
+					nodeStmt := &dotast.NodeStmt{
+						Node: &dotast.Node{
+							ID: typ.Ident.Name,
+						},
+						Attrs: []*dotast.Attr{attr, attrLabel},
+					}
+					stmt = append(stmt, nodeStmt)
+				case *ast.InterfaceType:
+					interfaceLabel := makeInterface(builder, typ.Ident.Name, t)
+					attr := &dotast.Attr{Key: "shape", Val: "Mrecord"}
+					nodeStmt := &dotast.NodeStmt{
+						Node: &dotast.Node{
+							ID: typ.Ident.Name,
+						},
+						Attrs: []*dotast.Attr{attr, interfaceLabel},
+					}
+					stmt = append(stmt, nodeStmt)
+				case *ast.StructType:
+					structLabel := makeStruct(builder, typ.Ident.Name, t)
+					attr := &dotast.Attr{Key: "shape", Val: "record"}
+					nodeStmt := &dotast.NodeStmt{
+						Node: &dotast.Node{
+							ID: typ.Ident.Name,
+						},
+						Attrs: []*dotast.Attr{attr, structLabel},
+					}
+					stmt = append(stmt, nodeStmt)
+				}
+			}
+
+			for _, etype := range typs {
+				switch t := etype.Type.(type) {
+				case *ast.FuncType:
+					for i, typ := range dependsOn(t) {
+						if _, ok := typs[typ]; ok {
+							from := &dotast.Node{
+								ID: strconv.Quote(etype.Ident.Name),
 								Port: &dotast.Port{
 									ID: fmt.Sprintf("f%d", i),
 								},
-							},
+							}
+							to := &dotast.Edge{
+								Directed: true,
+								Vertex: &dotast.Node{
+									ID: strconv.Quote(typ),
+									Port: &dotast.Port{
+										ID: fmt.Sprintf("f%d", i),
+									},
+								},
+							}
+							edgeStmt := &dotast.EdgeStmt{
+								From: from,
+								To:   to,
+							}
+							stmt = append(stmt, edgeStmt)
 						}
-						edgeStmt := &dotast.EdgeStmt{
-							From: from,
-							To:   to,
-						}
-						stmt = append(stmt, edgeStmt)
 					}
-				}
-			case *ast.ChanType:
-				for i, typ := range dependsOn(t) {
-					if _, ok := typs[typ]; ok {
+				case *ast.ChanType:
+					for i, typ := range dependsOn(t) {
+						if _, ok := typs[typ]; ok {
+							from := &dotast.Node{
+								ID: strconv.Quote(etype.Ident.Name),
+								Port: &dotast.Port{
+									ID: fmt.Sprintf("f%d", i),
+								},
+							}
+							to := &dotast.Edge{
+								Directed: true,
+								Vertex: &dotast.Node{
+									ID: strconv.Quote(typ),
+								},
+							}
+							edgeStmt := &dotast.EdgeStmt{
+								From: from,
+								To:   to,
+							}
+							stmt = append(stmt, edgeStmt)
+						}
+					}
+				case *ast.InterfaceType:
+					for i, f := range t.Methods.List {
 						from := &dotast.Node{
 							ID: strconv.Quote(etype.Ident.Name),
 							Port: &dotast.Port{
 								ID: fmt.Sprintf("f%d", i),
 							},
 						}
-						to := &dotast.Edge{
-							Directed: true,
-							Vertex: &dotast.Node{
-								ID: strconv.Quote(typ),
+						for _, typ := range dependsOn(f.Type) {
+							if _, ok := typs[typ]; ok {
+								to := &dotast.Edge{
+									Directed: true,
+									Vertex: &dotast.Node{
+										ID: strconv.Quote(typ),
+									},
+								}
+								edgeStmt := &dotast.EdgeStmt{
+									From: from,
+									To:   to,
+								}
+								stmt = append(stmt, edgeStmt)
+							}
+						}
+					}
+				case *ast.StructType:
+					for i, f := range t.Fields.List {
+						from := &dotast.Node{
+							ID: strconv.Quote(etype.Ident.Name),
+							Port: &dotast.Port{
+								ID: fmt.Sprintf("f%d", i),
 							},
 						}
-						edgeStmt := &dotast.EdgeStmt{
-							From: from,
-							To:   to,
-						}
-						stmt = append(stmt, edgeStmt)
-					}
-				}
-			case *ast.InterfaceType:
-				for i, f := range t.Methods.List {
-					from := &dotast.Node{
-						ID: strconv.Quote(etype.Ident.Name),
-						Port: &dotast.Port{
-							ID: fmt.Sprintf("f%d", i),
-						},
-					}
-					for _, typ := range dependsOn(f.Type) {
-						if _, ok := typs[typ]; ok {
-							to := &dotast.Edge{
-								Directed: true,
-								Vertex: &dotast.Node{
-									ID: strconv.Quote(typ),
-								},
+						for _, typ := range dependsOn(f.Type) {
+							if _, ok := typs[typ]; ok {
+								to := &dotast.Edge{
+									Directed: true,
+									Vertex: &dotast.Node{
+										ID: strconv.Quote(typ),
+									},
+								}
+								edgeStmt := &dotast.EdgeStmt{
+									From: from,
+									To:   to,
+								}
+								stmt = append(stmt, edgeStmt)
 							}
-							edgeStmt := &dotast.EdgeStmt{
-								From: from,
-								To:   to,
-							}
-							stmt = append(stmt, edgeStmt)
 						}
 					}
-				}
-			case *ast.StructType:
-				for i, f := range t.Fields.List {
-					from := &dotast.Node{
-						ID: strconv.Quote(etype.Ident.Name),
-						Port: &dotast.Port{
-							ID: fmt.Sprintf("f%d", i),
-						},
-					}
-					for _, typ := range dependsOn(f.Type) {
-						if _, ok := typs[typ]; ok {
-							to := &dotast.Edge{
-								Directed: true,
-								Vertex: &dotast.Node{
-									ID: strconv.Quote(typ),
-								},
-							}
-							edgeStmt := &dotast.EdgeStmt{
-								From: from,
-								To:   to,
-							}
-							stmt = append(stmt, edgeStmt)
-						}
-					}
-				}
 
+				}
 			}
+			subgraph.Stmts = append(subgraph.Stmts, stmt...)
+			graph.Stmts = append(graph.Stmts, subgraph)
 		}
-
-		subgraph.Stmts = append(subgraph.Stmts, stmt...)
-		graph.Stmts = append(graph.Stmts, subgraph)
 	}
-
-	file := &dotast.File{
-		Graphs: []*dotast.Graph{graph},
-	}
+	file.Graphs = append(file.Graphs, []*dotast.Graph{graph}...)
 	fmt.Fprintf(out, file.String())
 }
 
