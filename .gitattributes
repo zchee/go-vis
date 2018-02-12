@@ -1,0 +1,6 @@
+# go-vis project git attributes file
+# https://github.com/github/linguist#using-gitattributes
+
+doc.go linguist-documentation
+*.pb.go linguist-generated
+vendor/* linguist-vendored
