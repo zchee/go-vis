@@ -14,21 +14,19 @@ GO_BENCH_FLAGS ?= $(GO_TEST_FLAGS) -run=^$$ -bench=${GO_BENCH_FUNCS}
 
 all: $(APP)
 
-$(APP):
+$(APP): $(shell find . -name '*.go')
 	go build -v $(GCFLAGS) $(LDFLAGS) -o ./bin/$(APP) $(REPOSITORY)/cmd/$(APP)
-.PHONY: $(APP)
 
+.PHONY: clean
 clean:
 	${RM} -r ./bin *.test *.out
-.PHONY: clean
 
 init:
 	go get -u -v github.com/golang/dep/cmd/dep
 
+.PHONY: dep
 dep:
 	dep ensure -v
-	dep prune -v
-.PHONY: dep
 
 
 bin/goimports:
@@ -41,31 +39,31 @@ bin/errcheck:
 	go build -o bin/errcheck ./vendor/github.com/kisielk/errcheck
 
 
-test:
-	go test -v $(GO_TEST_FLAGS) $(TEST_SRC_PACKAGES)
 .PHONY: test
+test:
+	go test -v -race $(GO_TEST_FLAGS) $(TEST_SRC_PACKAGES)
 
+.PHONY: benchmark
 benchmark-go: datastore-start
 	go test -v $(GO_BENCH_FLAGS) $(TEST_SRC_PACKAGES)
-.PHONY: benchmark
 
 
-lint: fmt vet megacheck errcheck
 .PHONY: lint
+lint: fmt vet megacheck errcheck
 
+.PHONY: fmt
 fmt: bin/goimports
 	gofmt -l $(FMT_PACKAGES) | grep -E '.'; test $$? -eq 1
 	./bin/goimports -l $(FMT_PACKAGES) | grep -E '.'; test $$? -eq 1
-.PHONY: fmt
 
+.PHONY: vet
 vet:
 	go vet $(PACKAGES)
-.PHONY: vet
 
+.PHONY: staticcheck
 megacheck: bin/megacheck
 	./bin/megacheck $(PACKAGES)
-.PHONY: staticcheck
 
+.PHONY: errcheck
 errcheck: bin/errcheck
 	./bin/errcheck -exclude .errcheckignore $(PACKAGES)
-.PHONY: errcheck
