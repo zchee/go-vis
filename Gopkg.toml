@@ -27,7 +27,7 @@ required = [
 
 [prune]
   non-go = true
-  go-tests = true
+  # go-tests = true
   unused-packages = true
 
 [[constraint]]
@@ -36,7 +36,7 @@ required = [
 
 [[constraint]]
   name = "go.uber.org/zap"
-  branch = "master"
+  version = "^1.7.1"
 
 # linter
 [[constraint]]

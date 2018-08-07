@@ -2,12 +2,16 @@
 
 
 [[projects]]
+  digest = "1:c26a4d486818161b95d88747a521252720b1cad25231d6b0076ad93833df6b63"
   name = "github.com/fatih/color"
   packages = ["."]
+  pruneopts = "NU"
   revision = "570b54cabe6b8eb0bc2dfce68d964677d63b5260"
   version = "v1.5.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:d40781259d984cfe4d61a3d2630bbbe90f49ffb18c43eab8eddf3f7eae03b4fa"
   name = "github.com/golang/protobuf"
   packages = [
     "jsonpb",
@@ -16,78 +20,98 @@
     "ptypes/any",
     "ptypes/duration",
     "ptypes/struct",
-    "ptypes/timestamp"
+    "ptypes/timestamp",
   ]
-  revision = "925541529c1fa6821df4e44ce2723319eb2be768"
-  version = "v1.0.0"
+  pruneopts = "NU"
+  revision = "89a0c16f4dc2a70c0ed864d8ef64878f24fdaa51"
 
 [[projects]]
-  branch = "better_docs"
+  digest = "1:e330dd1af9fc6f6b8e5443567e6c7e4f99840e228d6359151cd9bbc5d5505533"
   name = "github.com/grpc-ecosystem/go-grpc-middleware"
   packages = [
     ".",
     "logging",
     "logging/zap",
-    "tags"
+    "logging/zap/ctxzap",
+    "tags",
+    "tags/zap",
   ]
-  revision = "63e69ea2fcaa6764e67826381756e528db9203ab"
+  pruneopts = "NU"
+  revision = "c250d6563d4d4c20252cd865923440e829844f4e"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:255444775f7a7000dcbb74cfb4f9aea3e7cc6dc64734ce20ef57db88e3fcd874"
   name = "github.com/hokaccha/go-prettyjson"
   packages = ["."]
+  pruneopts = "NU"
   revision = "e6b9231a2b1cc5798b336fdbf99c16cd8ad1e0c9"
 
 [[projects]]
   branch = "master"
+  digest = "1:630d2d6c6c561bcce8dd377b0b90924cee7318f40cfd0d95a426e04bb6c7a110"
   name = "github.com/kisielk/errcheck"
   packages = [
     ".",
-    "internal/errcheck"
+    "internal/errcheck",
   ]
+  pruneopts = "NU"
   revision = "b1445a9dd8285a50c6d1661d16f0a9ceb08125f7"
 
 [[projects]]
   branch = "master"
+  digest = "1:541ae366403c0ab7ae7ff1ba97b966e270ce04c5ea7b00cc918445cfca6b187d"
   name = "github.com/kisielk/gotool"
   packages = [
     ".",
-    "internal/load"
+    "internal/load",
   ]
+  pruneopts = "NU"
   revision = "d6ce6262d87e3a4e153e86023ff56ae771554a41"
 
 [[projects]]
+  digest = "1:c058c06b10db9e154e3385877da505455c13283e784f7d0d78efcbfe579cc766"
   name = "github.com/mattn/go-colorable"
   packages = ["."]
+  pruneopts = "NU"
   revision = "167de6bfdfba052fa6b2d3664c8f5272e23c9072"
   version = "v0.0.9"
 
 [[projects]]
+  digest = "1:91615e9f3404c7dffed550b2a245bccb1124e2940e04ee0688bccd53c9a81993"
   name = "github.com/mattn/go-isatty"
   packages = ["."]
+  pruneopts = "NU"
   revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
   version = "v0.0.3"
 
 [[projects]]
+  digest = "1:5da5dc86bcd23e94befc0048ccd757fc1706ebd3aa6c0ca9575d8b9def1b8f26"
   name = "github.com/pkg/errors"
   packages = ["."]
+  pruneopts = "NU"
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
 
 [[projects]]
+  digest = "1:3016960154fdff39b897ed4d3f28ff566aae5aae92a001c37bfa84d28145f076"
   name = "go.uber.org/atomic"
   packages = ["."]
+  pruneopts = "NU"
   revision = "8474b86a5a6f79c443ce4b2992817ff32cf208b8"
   version = "v1.3.1"
 
 [[projects]]
+  digest = "1:a2dc0729119ade92c1f0fa87e5aee3c97a753f1da935ebb97f6ddef6d274e192"
   name = "go.uber.org/multierr"
   packages = ["."]
+  pruneopts = "NU"
   revision = "3c4937480c32f4c13a875a1829af76c98ca3d40a"
   version = "v1.1.0"
 
 [[projects]]
-  branch = "master"
+  digest = "1:271832ef879a8448ed1401a68f472c2c698b582a55f326002fb0b5813d0daf45"
   name = "go.uber.org/zap"
   packages = [
     ".",
@@ -95,12 +119,15 @@
     "internal/bufferpool",
     "internal/color",
     "internal/exit",
-    "zapcore"
+    "zapcore",
   ]
-  revision = "f85c78b1dd998214c5f2138155b320a4a43fbe36"
+  pruneopts = "NU"
+  revision = "ff33455a0e382e8a81d14dd7c922020b6b5e7982"
+  version = "v1.9.1"
 
 [[projects]]
   branch = "master"
+  digest = "1:a84a6592f102f8eb9603b5cb1da23e158c5268facbc98c0ca16a47f56ac30f4f"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -109,18 +136,22 @@
     "idna",
     "internal/timeseries",
     "lex/httplex",
-    "trace"
+    "trace",
   ]
+  pruneopts = "NU"
   revision = "f5dfe339be1d06f81b22525fe34671ee7d2c8904"
 
 [[projects]]
   branch = "master"
+  digest = "1:a4427846e51c5917343e5021c1ac77214380578f16276ef6fb35fdf2447af76a"
   name = "golang.org/x/sys"
   packages = ["unix"]
+  pruneopts = "NU"
   revision = "37707fdb30a5b38865cfb95e5aab41707daec7fd"
 
 [[projects]]
   branch = "master"
+  digest = "1:3564076c933051154f8081999d057ade12348d918f78e55d5d0f51d101ab1af5"
   name = "golang.org/x/text"
   packages = [
     "collate",
@@ -136,12 +167,14 @@
     "unicode/bidi",
     "unicode/cldr",
     "unicode/norm",
-    "unicode/rangetable"
+    "unicode/rangetable",
   ]
+  pruneopts = "NU"
   revision = "4e4a3210bb54bb31f6ab2cdca2edcc0b50c420c1"
 
 [[projects]]
   branch = "master"
+  digest = "1:91b376f333e8493ef48f495265ef9bad7b0e4b5e55e54ccd435fe87f15d9d439"
   name = "golang.org/x/tools"
   packages = [
     "cmd/goimports",
@@ -149,12 +182,14 @@
     "go/buildutil",
     "go/loader",
     "go/types/typeutil",
-    "imports"
+    "imports",
   ]
+  pruneopts = "NU"
   revision = "95b47aa5df4eda9bfbc0133f77c0e320f0275eba"
 
 [[projects]]
   branch = "master"
+  digest = "1:d101d3a9861715a413c95e73c454451fbb93135855e3ff35055f3e5200e51fc9"
   name = "gonum.org/v1/gonum"
   packages = [
     "graph/formats/dot",
@@ -163,17 +198,21 @@
     "graph/formats/dot/internal/errors",
     "graph/formats/dot/internal/lexer",
     "graph/formats/dot/internal/parser",
-    "graph/formats/dot/internal/token"
+    "graph/formats/dot/internal/token",
   ]
+  pruneopts = "NU"
   revision = "996b88e8f8941c9defdbb338bea5e239a230e742"
 
 [[projects]]
   branch = "master"
+  digest = "1:cd018653a358d4b743a9d3bee89e825521f2ab2f2ec0770164bf7632d8d73ab7"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
+  pruneopts = "NU"
   revision = "2b5a72b8730b0b16380010cfe5286c42108d88e7"
 
 [[projects]]
+  digest = "1:6980f057a34a607f204da2b6677978d6b743a6d945acee96ce1bc7719daeeaca"
   name = "google.golang.org/grpc"
   packages = [
     ".",
@@ -197,13 +236,15 @@
     "stats",
     "status",
     "tap",
-    "transport"
+    "transport",
   ]
+  pruneopts = "NU"
   revision = "6b51017f791ae1cfbec89c52efdf444b13b550ef"
   version = "v1.9.2"
 
 [[projects]]
   branch = "master"
+  digest = "1:7fafe611fd12126062076862942ee4ada4f7755c9ebb0cba2f62eccdca1b8640"
   name = "honnef.co/go/tools"
   packages = [
     "callgraph",
@@ -220,13 +261,27 @@
     "staticcheck",
     "staticcheck/vrp",
     "unused",
-    "version"
+    "version",
   ]
+  pruneopts = "NU"
   revision = "8ed405e85c65fb38745a8eafe01ee9590523f172"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2e032115dd1f6b647af00f1443f3a10b61dea2164052e84b174cdc4d236fd64e"
+  input-imports = [
+    "github.com/fatih/color",
+    "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap",
+    "github.com/hokaccha/go-prettyjson",
+    "github.com/kisielk/errcheck",
+    "github.com/pkg/errors",
+    "go.uber.org/zap",
+    "go.uber.org/zap/buffer",
+    "go.uber.org/zap/zapcore",
+    "golang.org/x/tools/cmd/goimports",
+    "gonum.org/v1/gonum/graph/formats/dot",
+    "gonum.org/v1/gonum/graph/formats/dot/ast",
+    "honnef.co/go/tools/cmd/megacheck",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
